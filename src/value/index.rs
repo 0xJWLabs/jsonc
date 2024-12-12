@@ -5,7 +5,7 @@ use alloc::string::String;
 use core::fmt::{self, Display};
 use core::ops;
 
-/// A type that can be used to index into a `serde_json::Value`.
+/// A type that can be used to index into a `serde_jsonc2::Value`.
 ///
 /// The [`get`] and [`get_mut`] methods of `Value` accept any type that
 /// implements `Index`, as does the [square-bracket indexing operator]. This
@@ -17,14 +17,14 @@ use core::ops;
 /// [square-bracket indexing operator]: ../enum.Value.html#impl-Index%3CI%3E-for-Value
 ///
 /// This trait is sealed and cannot be implemented for types outside of
-/// `serde_json`.
+/// `serde_jsonc2`.
 ///
 /// # Examples
 ///
 /// ```
-/// # use serde_json::json;
+/// # use serde_jsonc2::jsonc;
 /// #
-/// let data = json!({ "inner": [1, 2, 3] });
+/// let data = jsonc!({ "inner": [1, 2, 3] });
 ///
 /// // Data is a JSON map so it can be indexed with a string.
 /// let inner = &data["inner"];
@@ -181,7 +181,7 @@ where
 {
     type Output = Value;
 
-    /// Index into a `serde_json::Value` using the syntax `value[0]` or
+    /// Index into a `serde_jsonc2::Value` using the syntax `value[0]` or
     /// `value["k"]`.
     ///
     /// Returns `Value::Null` if the type of `self` does not match the type of
@@ -195,19 +195,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let data = json!({
+    /// let data = jsonc!({
     ///     "x": {
     ///         "y": ["z", "zz"]
     ///     }
     /// });
     ///
-    /// assert_eq!(data["x"]["y"], json!(["z", "zz"]));
-    /// assert_eq!(data["x"]["y"][0], json!("z"));
+    /// assert_eq!(data["x"]["y"], jsonc!(["z", "zz"]));
+    /// assert_eq!(data["x"]["y"][0], jsonc!("z"));
     ///
-    /// assert_eq!(data["a"], json!(null)); // returns null for undefined values
-    /// assert_eq!(data["a"]["b"], json!(null)); // does not panic
+    /// assert_eq!(data["a"], jsonc!(null)); // returns null for undefined values
+    /// assert_eq!(data["a"]["b"], jsonc!(null)); // does not panic
     /// ```
     fn index(&self, index: I) -> &Value {
         static NULL: Value = Value::Null;
@@ -219,7 +219,7 @@ impl<I> ops::IndexMut<I> for Value
 where
     I: Index,
 {
-    /// Write into a `serde_json::Value` using the syntax `value[0] = ...` or
+    /// Write into a `serde_jsonc2::Value` using the syntax `value[0] = ...` or
     /// `value["k"] = ...`.
     ///
     /// If the index is a number, the value must be an array of length bigger
@@ -234,21 +234,21 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let mut data = json!({ "x": 0 });
+    /// let mut data = jsonc!({ "x": 0 });
     ///
     /// // replace an existing key
-    /// data["x"] = json!(1);
+    /// data["x"] = jsonc!(1);
     ///
     /// // insert a new key
-    /// data["y"] = json!([false, false, false]);
+    /// data["y"] = jsonc!([false, false, false]);
     ///
     /// // replace an array value
-    /// data["y"][0] = json!(true);
+    /// data["y"][0] = jsonc!(true);
     ///
     /// // inserted a deeply nested key
-    /// data["a"]["b"]["c"]["d"] = json!(true);
+    /// data["a"]["b"]["c"]["d"] = jsonc!(true);
     ///
     /// println!("{}", data);
     /// ```

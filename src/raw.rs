@@ -29,14 +29,14 @@ use serde::ser::{Serialize, SerializeStruct, Serializer};
 ///
 /// ```toml
 /// [dependencies]
-/// serde_json = { version = "1.0", features = ["raw_value"] }
+/// serde_jsonc2 = { version = "1.0", features = ["raw_value"] }
 /// ```
 ///
 /// # Example
 ///
 /// ```
 /// use serde::{Deserialize, Serialize};
-/// use serde_json::{Result, value::RawValue};
+/// use serde_jsonc2::{Result, value::RawValue};
 ///
 /// #[derive(Deserialize)]
 /// struct Input<'a> {
@@ -53,18 +53,18 @@ use serde::ser::{Serialize, SerializeStruct, Serializer};
 /// // Efficiently rearrange JSON input containing separate "code" and "payload"
 /// // keys into a single "info" key holding an array of code and payload.
 /// //
-/// // This could be done equivalently using serde_json::Value as the type for
+/// // This could be done equivalently using serde_jsonc2::Value as the type for
 /// // payload, but &RawValue will perform better because it does not require
 /// // memory allocation. The correct range of bytes is borrowed from the input
 /// // data and pasted verbatim into the output.
 /// fn rearrange(input: &str) -> Result<String> {
-///     let input: Input = serde_json::from_str(input)?;
+///     let input: Input = serde_jsonc2::from_str(input)?;
 ///
 ///     let output = Output {
 ///         info: (input.code, input.payload),
 ///     };
 ///
-///     serde_json::to_string(&output)
+///     serde_jsonc2::to_string(&output)
 /// }
 ///
 /// fn main() -> Result<()> {
@@ -82,7 +82,7 @@ use serde::ser::{Serialize, SerializeStruct, Serializer};
 ///
 /// ```
 /// # use serde::Deserialize;
-/// # use serde_json::value::RawValue;
+/// # use serde_jsonc2::value::RawValue;
 /// #
 /// #[derive(Deserialize)]
 /// struct SomeStruct<'a> {
@@ -92,20 +92,20 @@ use serde::ser::{Serialize, SerializeStruct, Serializer};
 /// ```
 ///
 /// The borrowed form is suitable when deserializing through
-/// [`serde_json::from_str`] and [`serde_json::from_slice`] which support
+/// [`serde_jsonc2::from_str`] and [`serde_jsonc2::from_slice`] which support
 /// borrowing from the input data without memory allocation.
 ///
-/// When deserializing through [`serde_json::from_reader`] you will need to use
+/// When deserializing through [`serde_jsonc2::from_reader`] you will need to use
 /// the boxed form of `RawValue` instead. This is almost as efficient but
 /// involves buffering the raw value from the I/O stream into memory.
 ///
-/// [`serde_json::from_str`]: ../fn.from_str.html
-/// [`serde_json::from_slice`]: ../fn.from_slice.html
-/// [`serde_json::from_reader`]: ../fn.from_reader.html
+/// [`serde_jsonc2::from_str`]: ../fn.from_str.html
+/// [`serde_jsonc2::from_slice`]: ../fn.from_slice.html
+/// [`serde_jsonc2::from_reader`]: ../fn.from_reader.html
 ///
 /// ```
 /// # use serde::Deserialize;
-/// # use serde_json::value::RawValue;
+/// # use serde_jsonc2::value::RawValue;
 /// #
 /// #[derive(Deserialize)]
 /// struct SomeStruct {
@@ -177,7 +177,7 @@ impl RawValue {
 
     /// Convert an owned `String` of JSON data to an owned `RawValue`.
     ///
-    /// This function is equivalent to `serde_json::from_str::<Box<RawValue>>`
+    /// This function is equivalent to `serde_jsonc2::from_str::<Box<RawValue>>`
     /// except that we avoid an allocation and memcpy if both of the following
     /// are true:
     ///
@@ -197,7 +197,7 @@ impl RawValue {
     ///
     /// ```
     /// use serde::Deserialize;
-    /// use serde_json::{Result, value::RawValue};
+    /// use serde_jsonc2::{Result, value::RawValue};
     ///
     /// #[derive(Deserialize)]
     /// struct Response<'a> {
@@ -207,7 +207,7 @@ impl RawValue {
     /// }
     ///
     /// fn process(input: &str) -> Result<()> {
-    ///     let response: Response = serde_json::from_str(input)?;
+    ///     let response: Response = serde_jsonc2::from_str(input)?;
     ///
     ///     let payload = response.payload.get();
     ///     if payload.starts_with('{') {
@@ -250,7 +250,7 @@ impl From<Box<RawValue>> for Box<str> {
 ///
 /// // Local crate
 /// use serde::Serialize;
-/// use serde_json::value::{to_raw_value, RawValue};
+/// use serde_jsonc2::value::{to_raw_value, RawValue};
 ///
 /// #[derive(Serialize)]
 /// struct MyExtraData {
@@ -264,8 +264,8 @@ impl From<Box<RawValue>> for Box<str> {
 ///     extra_data: to_raw_value(&MyExtraData { a: 1, b: 2 }).unwrap(),
 /// };
 /// # assert_eq!(
-/// #     serde_json::to_value(my_thing).unwrap(),
-/// #     serde_json::json!({
+/// #     serde_jsonc2::to_value(my_thing).unwrap(),
+/// #     serde_jsonc2::jsonc!({
 /// #         "foo": "FooVal",
 /// #         "bar": null,
 /// #         "extra_data": { "a": 1, "b": 2 }
@@ -285,7 +285,7 @@ impl From<Box<RawValue>> for Box<str> {
 /// let mut map = BTreeMap::new();
 /// map.insert(vec![32, 64], "x86");
 ///
-/// println!("{}", serde_json::value::to_raw_value(&map).unwrap_err());
+/// println!("{}", serde_jsonc2::value::to_raw_value(&map).unwrap_err());
 /// ```
 #[cfg_attr(docsrs, doc(cfg(feature = "raw_value")))]
 pub fn to_raw_value<T>(value: &T) -> Result<Box<RawValue>, Error>
@@ -296,7 +296,7 @@ where
     Ok(RawValue::from_owned(json_string.into_boxed_str()))
 }
 
-pub const TOKEN: &str = "$serde_json::private::RawValue";
+pub const TOKEN: &str = "$serde_jsonc2::private::RawValue";
 
 impl Serialize for RawValue {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

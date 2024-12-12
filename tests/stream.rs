@@ -1,6 +1,6 @@
 #![allow(clippy::assertions_on_result_states)]
 
-use serde_json::{json, Deserializer, Value};
+use serde_jsonc2::{jsonc, Deserializer, Value};
 
 // Rustfmt issue https://github.com/rust-lang-nursery/rustfmt/issues/2740
 #[rustfmt::skip]
@@ -47,6 +47,46 @@ fn test_json_stream_newlines() {
 
         assert!(stream.next().is_none());
         assert_eq!(stream.byte_offset(), 34);
+    });
+}
+
+#[test]
+fn test_json_stream_inline_comment() {
+    let data = "//\n{//\n\"x\"//\n://\n42//\n}//\n//";
+    test_stream!(data, Value, |stream| {
+        assert_eq!(stream.next().unwrap().unwrap()["x"], 42);
+        assert_eq!(stream.byte_offset(), 23);
+        assert!(stream.next().is_none());
+        assert_eq!(stream.byte_offset(), 28);
+    });
+}
+
+#[test]
+fn test_json_stream_invalid_inline_comment() {
+    let data = "{/\n\"x\":42}";
+    test_stream!(data, Value, |stream| {
+        assert!(stream.next().unwrap().is_err());
+        assert_eq!(stream.byte_offset(), 0);
+    });
+}
+
+#[test]
+fn test_json_stream_block_comment() {
+    let data = "/**/{/**/\"x\"/**/:/**/42/**/}/**/";
+    test_stream!(data, Value, |stream| {
+        assert_eq!(stream.next().unwrap().unwrap()["x"], 42);
+        assert_eq!(stream.byte_offset(), 28);
+        assert!(stream.next().is_none());
+        assert_eq!(stream.byte_offset(), 32);
+    });
+}
+
+#[test]
+fn test_json_stream_invalid_block_comment() {
+    let data = "{/*\"x\":42}";
+    test_stream!(data, Value, |stream| {
+        assert!(stream.next().unwrap().is_err());
+        assert_eq!(stream.byte_offset(), 0);
     });
 }
 
@@ -121,19 +161,19 @@ fn test_json_stream_primitive() {
     let data = "{} true{}1[]\nfalse\"hey\"2 ";
 
     test_stream!(data, Value, |stream| {
-        assert_eq!(stream.next().unwrap().unwrap(), json!({}));
+        assert_eq!(stream.next().unwrap().unwrap(), jsonc!({}));
         assert_eq!(stream.byte_offset(), 2);
 
         assert_eq!(stream.next().unwrap().unwrap(), true);
         assert_eq!(stream.byte_offset(), 7);
 
-        assert_eq!(stream.next().unwrap().unwrap(), json!({}));
+        assert_eq!(stream.next().unwrap().unwrap(), jsonc!({}));
         assert_eq!(stream.byte_offset(), 9);
 
         assert_eq!(stream.next().unwrap().unwrap(), 1);
         assert_eq!(stream.byte_offset(), 10);
 
-        assert_eq!(stream.next().unwrap().unwrap(), json!([]));
+        assert_eq!(stream.next().unwrap().unwrap(), jsonc!([]));
         assert_eq!(stream.byte_offset(), 12);
 
         assert_eq!(stream.next().unwrap().unwrap(), false);

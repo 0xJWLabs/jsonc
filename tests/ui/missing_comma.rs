@@ -1,5 +1,5 @@
-use serde_json::json;
+use serde_jsonc2::jsonc;
 
 fn main() {
-    json!({ "1": "" "2": "" });
+    jsonc!({ "1": "" "2": "" });
 }

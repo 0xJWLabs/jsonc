@@ -38,10 +38,10 @@
 //! # Operating on untyped JSON values
 //!
 //! Any valid JSON data can be manipulated in the following recursive enum
-//! representation. This data structure is [`serde_json::Value`][value].
+//! representation. This data structure is [`serde_jsonc2::Value`][value].
 //!
 //! ```
-//! # use serde_json::{Number, Map};
+//! # use serde_jsonc2::{Number, Map};
 //! #
 //! # #[allow(dead_code)]
 //! enum Value {
@@ -54,13 +54,13 @@
 //! }
 //! ```
 //!
-//! A string of JSON data can be parsed into a `serde_json::Value` by the
-//! [`serde_json::from_str`][from_str] function. There is also [`from_slice`]
+//! A string of JSON data can be parsed into a `serde_jsonc2::Value` by the
+//! [`serde_jsonc2::from_str`][from_str] function. There is also [`from_slice`]
 //! for parsing from a byte slice `&[u8]` and [`from_reader`] for parsing from
 //! any `io::Read` like a File or a TCP stream.
 //!
 //! ```
-//! use serde_json::{Result, Value};
+//! use serde_jsonc2::{Result, Value};
 //!
 //! fn untyped_example() -> Result<()> {
 //!     // Some JSON input data as a &str. Maybe this comes from the user.
@@ -74,8 +74,8 @@
 //!             ]
 //!         }"#;
 //!
-//!     // Parse the string of data into serde_json::Value.
-//!     let v: Value = serde_json::from_str(data)?;
+//!     // Parse the string of data into serde_jsonc2::Value.
+//!     let v: Value = serde_jsonc2::from_str(data)?;
 //!
 //!     // Access parts of the data by indexing with square brackets.
 //!     println!("Please call {} at the number {}", v["name"], v["phones"][0]);
@@ -119,7 +119,7 @@
 //!
 //! ```
 //! use serde::{Deserialize, Serialize};
-//! use serde_json::Result;
+//! use serde_jsonc2::Result;
 //!
 //! #[derive(Serialize, Deserialize)]
 //! struct Person {
@@ -141,9 +141,9 @@
 //!         }"#;
 //!
 //!     // Parse the string of data into a Person object. This is exactly the
-//!     // same function as the one that produced serde_json::Value above, but
+//!     // same function as the one that produced serde_jsonc2::Value above, but
 //!     // now we are asking it for a Person as output.
-//!     let p: Person = serde_json::from_str(data)?;
+//!     let p: Person = serde_jsonc2::from_str(data)?;
 //!
 //!     // Do things just like with any other Rust data structure.
 //!     println!("Please call {} at the number {}", p.name, p.phones[0]);
@@ -156,7 +156,7 @@
 //! # }
 //! ```
 //!
-//! This is the same `serde_json::from_str` function as before, but this time we
+//! This is the same `serde_jsonc2::from_str` function as before, but this time we
 //! assign the return value to a variable of type `Person` so Serde will
 //! automatically interpret the input data as a `Person` and produce informative
 //! error messages if the layout does not conform to what a `Person` is expected
@@ -170,22 +170,22 @@
 //! Once we have `p` of type `Person`, our IDE and the Rust compiler can help us
 //! use it correctly like they do for any other Rust code. The IDE can
 //! autocomplete field names to prevent typos, which was impossible in the
-//! `serde_json::Value` representation. And the Rust compiler can check that
+//! `serde_jsonc2::Value` representation. And the Rust compiler can check that
 //! when we write `p.phones[0]`, then `p.phones` is guaranteed to be a
 //! `Vec<String>` so indexing into it makes sense and produces a `String`.
 //!
 //! # Constructing JSON values
 //!
-//! Serde JSON provides a [`json!` macro][macro] to build `serde_json::Value`
+//! Serde JSON provides a [`jsonc!` macro][macro] to build `serde_jsonc2::Value`
 //! objects with very natural JSON syntax.
 //!
 //! ```
-//! use serde_json::json;
+//! use serde_jsonc2::jsonc;
 //!
 //! fn main() {
-//!     // The type of `john` is `serde_json::Value`
-//!     let john = json!({
-//!         "name": "John Doe",
+//!     // The type of `john` is `serde_jsonc2::Value`
+//!     let john = jsonc!({
+//!         "name": "John Doe", // Data name
 //!         "age": 43,
 //!         "phones": [
 //!             "+44 1234567",
@@ -200,7 +200,7 @@
 //! }
 //! ```
 //!
-//! The `Value::to_string()` function converts a `serde_json::Value` into a
+//! The `Value::to_string()` function converts a `serde_jsonc2::Value` into a
 //! `String` of JSON text.
 //!
 //! One neat thing about the `json!` macro is that variables and expressions can
@@ -209,16 +209,16 @@
 //! be represented as JSON.
 //!
 //! ```
-//! # use serde_json::json;
+//! # use serde_jsonc2::jsonc;
 //! #
 //! # fn random_phone() -> u16 { 0 }
 //! #
 //! let full_name = "John Doe";
 //! let age_last_year = 42;
 //!
-//! // The type of `john` is `serde_json::Value`
-//! let john = json!({
-//!     "name": full_name,
+//! // The type of `john` is `serde_jsonc2::Value`
+//! let john = jsonc!({
+//!     "name": full_name, // Full name
 //!     "age": age_last_year + 1,
 //!     "phones": [
 //!         format!("+44 {}", random_phone())
@@ -234,14 +234,14 @@
 //! # Creating JSON by serializing data structures
 //!
 //! A data structure can be converted to a JSON string by
-//! [`serde_json::to_string`][to_string]. There is also
-//! [`serde_json::to_vec`][to_vec] which serializes to a `Vec<u8>` and
-//! [`serde_json::to_writer`][to_writer] which serializes to any `io::Write`
+//! [`serde_jsonc2::to_string`][to_string]. There is also
+//! [`serde_jsonc2::to_vec`][to_vec] which serializes to a `Vec<u8>` and
+//! [`serde_jsonc2::to_writer`][to_writer] which serializes to any `io::Write`
 //! such as a File or a TCP stream.
 //!
 //! ```
 //! use serde::{Deserialize, Serialize};
-//! use serde_json::Result;
+//! use serde_jsonc2::Result;
 //!
 //! #[derive(Serialize, Deserialize)]
 //! struct Address {
@@ -257,7 +257,7 @@
 //!     };
 //!
 //!     // Serialize it to a JSON string.
-//!     let j = serde_json::to_string(&address)?;
+//!     let j = serde_jsonc2::to_string(&address)?;
 //!
 //!     // Print, write to a file, or send to an HTTP server.
 //!     println!("{}", j);
@@ -277,13 +277,13 @@
 //!
 //! # No-std support
 //!
-//! As long as there is a memory allocator, it is possible to use serde_json
+//! As long as there is a memory allocator, it is possible to use serde_jsonc2
 //! without the rest of the Rust standard library. Disable the default "std"
 //! feature and enable the "alloc" feature:
 //!
 //! ```toml
 //! [dependencies]
-//! serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+//! serde_jsonc2 = { version = "1.0", default-features = false, features = ["alloc"] }
 //! ```
 //!
 //! For JSON support in Serde without a memory allocator, please see the
@@ -296,10 +296,9 @@
 //! [to_string]: crate::ser::to_string
 //! [to_vec]: crate::ser::to_vec
 //! [to_writer]: crate::ser::to_writer
-//! [macro]: crate::json
-//! [`serde-json-core`]: https://github.com/rust-embedded-community/serde-json-core
+//! [macro]: crate::jsonc
 
-#![doc(html_root_url = "https://docs.rs/serde_json/1.0.133")]
+#![doc(html_root_url = "https://docs.rs/serde_jsonc2/1.0.133")]
 // Ignored clippy lints
 #![allow(
     clippy::collapsible_else_if,
@@ -367,7 +366,7 @@
 
 #[cfg(not(any(feature = "std", feature = "alloc")))]
 compile_error! {
-    "serde_json requires that either `std` (default) or `alloc` feature is enabled"
+    "serde_jsonc2 requires that either `std` (default) or `alloc` feature is enabled"
 }
 
 extern crate alloc;

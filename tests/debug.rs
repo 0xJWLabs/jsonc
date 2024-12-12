@@ -1,5 +1,5 @@
 use indoc::indoc;
-use serde_json::{json, Number, Value};
+use serde_jsonc2::{jsonc, Number, Value};
 
 #[test]
 fn number() {
@@ -13,49 +13,49 @@ fn number() {
 
 #[test]
 fn value_null() {
-    assert_eq!(format!("{:?}", json!(null)), "Null");
+    assert_eq!(format!("{:?}", jsonc!(null)), "Null");
 }
 
 #[test]
 fn value_bool() {
-    assert_eq!(format!("{:?}", json!(true)), "Bool(true)");
-    assert_eq!(format!("{:?}", json!(false)), "Bool(false)");
+    assert_eq!(format!("{:?}", jsonc!(true)), "Bool(true)");
+    assert_eq!(format!("{:?}", jsonc!(false)), "Bool(false)");
 }
 
 #[test]
 fn value_number() {
-    assert_eq!(format!("{:?}", json!(1)), "Number(1)");
-    assert_eq!(format!("{:?}", json!(-1)), "Number(-1)");
-    assert_eq!(format!("{:?}", json!(1.0)), "Number(1.0)");
+    assert_eq!(format!("{:?}", jsonc!(1)), "Number(1)");
+    assert_eq!(format!("{:?}", jsonc!(-1)), "Number(-1)");
+    assert_eq!(format!("{:?}", jsonc!(1.0)), "Number(1.0)");
     assert_eq!(Number::from_f64(1.0).unwrap().to_string(), "1.0"); // not just "1"
     assert_eq!(Number::from_f64(12e40).unwrap().to_string(), "1.2e41");
 }
 
 #[test]
 fn value_string() {
-    assert_eq!(format!("{:?}", json!("s")), "String(\"s\")");
+    assert_eq!(format!("{:?}", jsonc!("s")), "String(\"s\")");
 }
 
 #[test]
 fn value_array() {
-    assert_eq!(format!("{:?}", json!([])), "Array []");
+    assert_eq!(format!("{:?}", jsonc!([])), "Array []");
 }
 
 #[test]
 fn value_object() {
-    assert_eq!(format!("{:?}", json!({})), "Object {}");
+    assert_eq!(format!("{:?}", jsonc!({})), "Object {}");
 }
 
 #[test]
 fn error() {
-    let err = serde_json::from_str::<Value>("{0}").unwrap_err();
+    let err = serde_jsonc2::from_str::<Value>("{0}").unwrap_err();
     let expected = "Error(\"key must be a string\", line: 1, column: 2)";
     assert_eq!(format!("{:?}", err), expected);
 }
 
 #[test]
 fn indented() {
-    let j = json!({
+    let j = jsonc!({
         "Array": [true],
         "Bool": true,
         "EmptyArray": [],

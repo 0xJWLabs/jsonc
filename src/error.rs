@@ -21,7 +21,7 @@ pub struct Error {
     err: Box<ErrorImpl>,
 }
 
-/// Alias for a `Result` with the error type `serde_json::Error`.
+/// Alias for a `Result` with the error type `serde_jsonc2::Error`.
 pub type Result<T> = result::Result<T, Error>;
 
 impl Error {
@@ -117,7 +117,7 @@ impl Error {
     /// # Example
     ///
     /// ```
-    /// use serde_json::Value;
+    /// use serde_jsonc2::Value;
     /// use std::io::{self, ErrorKind, Read};
     /// use std::process;
     ///
@@ -136,7 +136,7 @@ impl Error {
     /// fn main() {
     ///     let reader = ReaderThatWillTimeOut(br#" {"k": "#);
     ///
-    ///     let _: Value = match serde_json::from_reader(reader) {
+    ///     let _: Value = match serde_jsonc2::from_reader(reader) {
     ///         Ok(value) => value,
     ///         Err(error) => {
     ///             if error.io_error_kind() == Some(ErrorKind::TimedOut) {
@@ -161,7 +161,7 @@ impl Error {
     }
 }
 
-/// Categorizes the cause of a `serde_json::Error`.
+/// Categorizes the cause of a `serde_jsonc2::Error`.
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Category {
     /// The error was caused by a failure to read or write bytes on an I/O
@@ -187,7 +187,7 @@ pub enum Category {
 #[cfg(feature = "std")]
 #[allow(clippy::fallible_impl_from)]
 impl From<Error> for io::Error {
-    /// Convert a `serde_json::Error` into an `io::Error`.
+    /// Convert a `serde_jsonc2::Error` into an `io::Error`.
     ///
     /// JSON syntax and data errors are turned into `InvalidData` I/O errors.
     /// EOF errors are turned into `UnexpectedEof` I/O errors.
@@ -197,12 +197,12 @@ impl From<Error> for io::Error {
     ///
     /// enum MyError {
     ///     Io(io::Error),
-    ///     Json(serde_json::Error),
+    ///     Json(serde_jsonc2::Error),
     /// }
     ///
-    /// impl From<serde_json::Error> for MyError {
-    ///     fn from(err: serde_json::Error) -> MyError {
-    ///         use serde_json::error::Category;
+    /// impl From<serde_jsonc2::Error> for MyError {
+    ///     fn from(err: serde_jsonc2::Error) -> MyError {
+    ///         use serde_jsonc2::error::Category;
     ///         match err.classify() {
     ///             Category::Io => {
     ///                 MyError::Io(err.into())

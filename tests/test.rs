@@ -27,9 +27,9 @@ use serde::ser::{self, SerializeMap, SerializeSeq, Serializer};
 use serde::{Deserialize, Serialize};
 use serde_bytes::{ByteBuf, Bytes};
 #[cfg(feature = "raw_value")]
-use serde_json::value::RawValue;
-use serde_json::{
-    from_reader, from_slice, from_str, from_value, json, to_string, to_string_pretty, to_value,
+use serde_jsonc2::value::RawValue;
+use serde_jsonc2::{
+    from_reader, from_slice, from_str, from_value, jsonc, to_string, to_string_pretty, to_value,
     to_vec, Deserializer, Number, Value,
 };
 use std::collections::BTreeMap;
@@ -252,12 +252,7 @@ fn test_write_list() {
         (vec![true, false], pretty_str!([true, false])),
     ]);
 
-    let long_test_list = json!([false, null, ["foo\nbar", 3.5]]);
-
-    test_encode_ok(&[(
-        long_test_list.clone(),
-        json_str!([false, null, ["foo\nbar", 3.5]]),
-    )]);
+    let long_test_list = jsonc!([false, null, ["foo\nbar", 3.5]]);
 
     test_pretty_encode_ok(&[(
         long_test_list,
@@ -441,7 +436,7 @@ fn test_write_object() {
         ),
     ]);
 
-    let complex_obj = json!({
+    let complex_obj = jsonc!({
         "b": [
             {"c": "\x0c\x1f\r"},
             {"d": ""}
@@ -450,7 +445,7 @@ fn test_write_object() {
 
     test_encode_ok(&[(
         complex_obj.clone(),
-        json_str!({
+        jsonc_str!({
             "b": [
                 {
                     "c": (r#""\f\u001f\r""#)
@@ -944,7 +939,7 @@ fn test_parse_f64() {
 
 #[test]
 fn test_value_as_f64() {
-    let v = serde_json::from_str::<Value>("1e1000");
+    let v = serde_jsonc2::from_str::<Value>("1e1000");
 
     #[cfg(not(feature = "arbitrary_precision"))]
     assert!(v.is_err());
@@ -973,8 +968,8 @@ fn test_roundtrip_f64() {
         -1.6727517818542075e58,
         3.9287532173373315e299,
     ] {
-        let json = serde_json::to_string(&float).unwrap();
-        let output: f64 = serde_json::from_str(&json).unwrap();
+        let json = serde_jsonc2::to_string(&float).unwrap();
+        let output: f64 = serde_jsonc2::from_str(&json).unwrap();
         assert_eq!(float, output);
     }
 }
@@ -984,14 +979,14 @@ fn test_roundtrip_f32() {
     // This number has 1 ULP error if parsed via f64 and converted to f32.
     // https://github.com/serde-rs/json/pull/671#issuecomment-628534468
     let float = 7.038531e-26;
-    let json = serde_json::to_string(&float).unwrap();
-    let output: f32 = serde_json::from_str(&json).unwrap();
+    let json = serde_jsonc2::to_string(&float).unwrap();
+    let output: f32 = serde_jsonc2::from_str(&json).unwrap();
     assert_eq!(float, output);
 }
 
 #[test]
 fn test_serialize_char() {
-    let value = json!(
+    let value = jsonc!(
         ({
             let mut map = BTreeMap::new();
             map.insert('c', ());
@@ -1005,13 +1000,13 @@ fn test_serialize_char() {
 #[test]
 fn test_malicious_number() {
     #[derive(Serialize)]
-    #[serde(rename = "$serde_json::private::Number")]
+    #[serde(rename = "$serde_jsonc2::private::Number")]
     struct S {
-        #[serde(rename = "$serde_json::private::Number")]
+        #[serde(rename = "$serde_jsonc2::private::Number")]
         f: &'static str,
     }
 
-    let actual = serde_json::to_value(&S { f: "not a number" })
+    let actual = serde_jsonc2::to_value(&S { f: "not a number" })
         .unwrap_err()
         .to_string();
     assert_eq!(actual, "invalid number at line 1 column 1");
@@ -1274,7 +1269,7 @@ fn test_parse_struct() {
         }
     );
 
-    let j = json!([null, 2, []]);
+    let j = jsonc!([null, 2, []]);
     Inner::deserialize(&j).unwrap();
     Inner::deserialize(j).unwrap();
 }
@@ -1414,10 +1409,10 @@ fn test_missing_option_field() {
     let value: Foo = from_str("{\"x\": 5}").unwrap();
     assert_eq!(value, Foo { x: Some(5) });
 
-    let value: Foo = from_value(json!({})).unwrap();
+    let value: Foo = from_value(jsonc!({})).unwrap();
     assert_eq!(value, Foo { x: None });
 
-    let value: Foo = from_value(json!({"x": 5})).unwrap();
+    let value: Foo = from_value(jsonc!({"x": 5})).unwrap();
     assert_eq!(value, Foo { x: Some(5) });
 }
 
@@ -1445,10 +1440,10 @@ fn test_missing_renamed_field() {
     let value: Foo = from_str("{\"y\": 5}").unwrap();
     assert_eq!(value, Foo { x: Some(5) });
 
-    let value: Foo = from_value(json!({})).unwrap();
+    let value: Foo = from_value(jsonc!({})).unwrap();
     assert_eq!(value, Foo { x: None });
 
-    let value: Foo = from_value(json!({"y": 5})).unwrap();
+    let value: Foo = from_value(jsonc!({"y": 5})).unwrap();
     assert_eq!(value, Foo { x: Some(5) });
 }
 
@@ -1625,7 +1620,7 @@ fn test_serialize_map_with_no_len() {
 #[cfg(not(miri))]
 #[test]
 fn test_deserialize_from_stream() {
-    use serde_json::to_writer;
+    use serde_jsonc2::to_writer;
     use std::net::{TcpListener, TcpStream};
     use std::thread;
 
@@ -1768,7 +1763,7 @@ fn test_byte_buf_de_surrogate_pair() {
 #[cfg(feature = "raw_value")]
 #[test]
 fn test_raw_de_invalid_surrogates() {
-    use serde_json::value::RawValue;
+    use serde_jsonc2::value::RawValue;
 
     assert!(from_str::<Box<RawValue>>(r#""\ud83c""#).is_ok());
     assert!(from_str::<Box<RawValue>>(r#""\ud83c\n""#).is_ok());
@@ -1785,7 +1780,7 @@ fn test_raw_de_invalid_surrogates() {
 #[cfg(feature = "raw_value")]
 #[test]
 fn test_raw_de_surrogate_pair() {
-    use serde_json::value::RawValue;
+    use serde_jsonc2::value::RawValue;
 
     assert!(from_str::<Box<RawValue>>(r#""\ud83c\udc00""#).is_ok());
 }
@@ -1817,17 +1812,17 @@ fn test_json_pointer() {
     )
     .unwrap();
     assert_eq!(data.pointer("").unwrap(), &data);
-    assert_eq!(data.pointer("/foo").unwrap(), &json!(["bar", "baz"]));
-    assert_eq!(data.pointer("/foo/0").unwrap(), &json!("bar"));
-    assert_eq!(data.pointer("/").unwrap(), &json!(0));
-    assert_eq!(data.pointer("/a~1b").unwrap(), &json!(1));
-    assert_eq!(data.pointer("/c%d").unwrap(), &json!(2));
-    assert_eq!(data.pointer("/e^f").unwrap(), &json!(3));
-    assert_eq!(data.pointer("/g|h").unwrap(), &json!(4));
-    assert_eq!(data.pointer("/i\\j").unwrap(), &json!(5));
-    assert_eq!(data.pointer("/k\"l").unwrap(), &json!(6));
-    assert_eq!(data.pointer("/ ").unwrap(), &json!(7));
-    assert_eq!(data.pointer("/m~0n").unwrap(), &json!(8));
+    assert_eq!(data.pointer("/foo").unwrap(), &jsonc!(["bar", "baz"]));
+    assert_eq!(data.pointer("/foo/0").unwrap(), &jsonc!("bar"));
+    assert_eq!(data.pointer("/").unwrap(), &jsonc!(0));
+    assert_eq!(data.pointer("/a~1b").unwrap(), &jsonc!(1));
+    assert_eq!(data.pointer("/c%d").unwrap(), &jsonc!(2));
+    assert_eq!(data.pointer("/e^f").unwrap(), &jsonc!(3));
+    assert_eq!(data.pointer("/g|h").unwrap(), &jsonc!(4));
+    assert_eq!(data.pointer("/i\\j").unwrap(), &jsonc!(5));
+    assert_eq!(data.pointer("/k\"l").unwrap(), &jsonc!(6));
+    assert_eq!(data.pointer("/ ").unwrap(), &jsonc!(7));
+    assert_eq!(data.pointer("/m~0n").unwrap(), &jsonc!(8));
     // Invalid pointers
     assert!(data.pointer("/unknown").is_none());
     assert!(data.pointer("/e^f/ertz").is_none());
@@ -1855,8 +1850,8 @@ fn test_json_pointer_mut() {
     .unwrap();
 
     // Basic pointer checks
-    assert_eq!(data.pointer_mut("/foo").unwrap(), &json!(["bar", "baz"]));
-    assert_eq!(data.pointer_mut("/foo/0").unwrap(), &json!("bar"));
+    assert_eq!(data.pointer_mut("/foo").unwrap(), &jsonc!(["bar", "baz"]));
+    assert_eq!(data.pointer_mut("/foo/0").unwrap(), &jsonc!("bar"));
     assert_eq!(data.pointer_mut("/").unwrap(), 0);
     assert_eq!(data.pointer_mut("/a~1b").unwrap(), 1);
     assert_eq!(data.pointer_mut("/c%d").unwrap(), 2);
@@ -1876,17 +1871,17 @@ fn test_json_pointer_mut() {
     // Mutable pointer checks
     *data.pointer_mut("/").unwrap() = 100.into();
     assert_eq!(data.pointer("/").unwrap(), 100);
-    *data.pointer_mut("/foo/0").unwrap() = json!("buzz");
-    assert_eq!(data.pointer("/foo/0").unwrap(), &json!("buzz"));
+    *data.pointer_mut("/foo/0").unwrap() = jsonc!("buzz");
+    assert_eq!(data.pointer("/foo/0").unwrap(), &jsonc!("buzz"));
 
     // Example of ownership stealing
     assert_eq!(
         data.pointer_mut("/a~1b")
-            .map(|m| mem::replace(m, json!(null)))
+            .map(|m| mem::replace(m, jsonc!(null)))
             .unwrap(),
         1
     );
-    assert_eq!(data.pointer("/a~1b").unwrap(), &json!(null));
+    assert_eq!(data.pointer("/a~1b").unwrap(), &jsonc!(null));
 
     // Need to compare against a clone so we don't anger the borrow checker
     // by taking out two references to a mutable value
@@ -1942,13 +1937,13 @@ fn test_integer_key() {
         (r#"{"123 ":null}"#, "expected `\"` at line 1 column 6"),
     ]);
 
-    let err = from_value::<BTreeMap<i32, ()>>(json!({" 123":null})).unwrap_err();
+    let err = from_value::<BTreeMap<i32, ()>>(jsonc!({" 123":null})).unwrap_err();
     assert_eq!(
         err.to_string(),
         "invalid value: expected key to be a number in quotes",
     );
 
-    let err = from_value::<BTreeMap<i32, ()>>(json!({"123 ":null})).unwrap_err();
+    let err = from_value::<BTreeMap<i32, ()>>(jsonc!({"123 ":null})).unwrap_err();
     assert_eq!(
         err.to_string(),
         "invalid value: expected key to be a number in quotes",
@@ -2017,16 +2012,16 @@ fn test_deny_non_finite_f32_key() {
     }
 
     let map = treemap!(F32Bits(f32::INFINITY.to_bits()) => "x".to_owned());
-    assert!(serde_json::to_string(&map).is_err());
-    assert!(serde_json::to_value(map).is_err());
+    assert!(serde_jsonc2::to_string(&map).is_err());
+    assert!(serde_jsonc2::to_value(map).is_err());
 
     let map = treemap!(F32Bits(f32::NEG_INFINITY.to_bits()) => "x".to_owned());
-    assert!(serde_json::to_string(&map).is_err());
-    assert!(serde_json::to_value(map).is_err());
+    assert!(serde_jsonc2::to_string(&map).is_err());
+    assert!(serde_jsonc2::to_value(map).is_err());
 
     let map = treemap!(F32Bits(f32::NAN.to_bits()) => "x".to_owned());
-    assert!(serde_json::to_string(&map).is_err());
-    assert!(serde_json::to_value(map).is_err());
+    assert!(serde_jsonc2::to_string(&map).is_err());
+    assert!(serde_jsonc2::to_value(map).is_err());
 }
 
 #[test]
@@ -2046,16 +2041,16 @@ fn test_deny_non_finite_f64_key() {
     }
 
     let map = treemap!(F64Bits(f64::INFINITY.to_bits()) => "x".to_owned());
-    assert!(serde_json::to_string(&map).is_err());
-    assert!(serde_json::to_value(map).is_err());
+    assert!(serde_jsonc2::to_string(&map).is_err());
+    assert!(serde_jsonc2::to_value(map).is_err());
 
     let map = treemap!(F64Bits(f64::NEG_INFINITY.to_bits()) => "x".to_owned());
-    assert!(serde_json::to_string(&map).is_err());
-    assert!(serde_json::to_value(map).is_err());
+    assert!(serde_jsonc2::to_string(&map).is_err());
+    assert!(serde_jsonc2::to_value(map).is_err());
 
     let map = treemap!(F64Bits(f64::NAN.to_bits()) => "x".to_owned());
-    assert!(serde_json::to_string(&map).is_err());
-    assert!(serde_json::to_value(map).is_err());
+    assert!(serde_jsonc2::to_string(&map).is_err());
+    assert!(serde_jsonc2::to_value(map).is_err());
 }
 
 #[test]
@@ -2110,25 +2105,25 @@ fn test_effectively_string_keys() {
 fn test_json_macro() {
     // This is tricky because the <...> is not a single TT and the comma inside
     // looks like an array element separator.
-    let _ = json!([
+    let _ = jsonc!([
         <Result<(), ()> as Clone>::clone(&Ok(())),
         <Result<(), ()> as Clone>::clone(&Err(()))
     ]);
 
     // Same thing but in the map values.
-    let _ = json!({
+    let _ = jsonc!({
         "ok": <Result<(), ()> as Clone>::clone(&Ok(())),
         "err": <Result<(), ()> as Clone>::clone(&Err(()))
     });
 
     // It works in map keys but only if they are parenthesized.
-    let _ = json!({
+    let _ = jsonc!({
         (<Result<&str, ()> as Clone>::clone(&Ok("")).unwrap()): "ok",
         (<Result<(), &str> as Clone>::clone(&Err("")).unwrap_err()): "err"
     });
 
     #[deny(unused_results)]
-    let _ = json!({ "architecture": [true, null] });
+    let _ = jsonc!({ "architecture": [true, null] });
 }
 
 #[test]
@@ -2265,7 +2260,7 @@ fn test_borrow() {
 
 #[test]
 fn null_invalid_type() {
-    let err = serde_json::from_str::<String>("null").unwrap_err();
+    let err = serde_jsonc2::from_str::<String>("null").unwrap_err();
     assert_eq!(
         format!("{}", err),
         String::from("invalid type: null, expected a string at line 1 column 4")
@@ -2342,23 +2337,23 @@ fn test_borrowed_raw_value() {
     }
 
     let wrapper_from_str: Wrapper =
-        serde_json::from_str(r#"{"a": 1, "b": {"foo": 2}, "c": 3}"#).unwrap();
+        serde_jsonc2::from_str(r#"{"a": 1, "b": {"foo": 2}, "c": 3}"#).unwrap();
     assert_eq!(r#"{"foo": 2}"#, wrapper_from_str.b.get());
 
-    let wrapper_to_string = serde_json::to_string(&wrapper_from_str).unwrap();
+    let wrapper_to_string = serde_jsonc2::to_string(&wrapper_from_str).unwrap();
     assert_eq!(r#"{"a":1,"b":{"foo": 2},"c":3}"#, wrapper_to_string);
 
-    let wrapper_to_value = serde_json::to_value(&wrapper_from_str).unwrap();
-    assert_eq!(json!({"a": 1, "b": {"foo": 2}, "c": 3}), wrapper_to_value);
+    let wrapper_to_value = serde_jsonc2::to_value(&wrapper_from_str).unwrap();
+    assert_eq!(jsonc!({"a": 1, "b": {"foo": 2}, "c": 3}), wrapper_to_value);
 
     let array_from_str: Vec<&RawValue> =
-        serde_json::from_str(r#"["a", 42, {"foo": "bar"}, null]"#).unwrap();
+        serde_jsonc2::from_str(r#"["a", 42, {"foo": "bar"}, null]"#).unwrap();
     assert_eq!(r#""a""#, array_from_str[0].get());
     assert_eq!("42", array_from_str[1].get());
     assert_eq!(r#"{"foo": "bar"}"#, array_from_str[2].get());
     assert_eq!("null", array_from_str[3].get());
 
-    let array_to_string = serde_json::to_string(&array_from_str).unwrap();
+    let array_to_string = serde_jsonc2::to_string(&array_from_str).unwrap();
     assert_eq!(r#"["a",42,{"foo": "bar"},null]"#, array_to_string);
 }
 
@@ -2396,7 +2391,7 @@ fn test_raw_value_in_map_key() {
     }
 
     let map_from_str: HashMap<&RawMapKey, &RawValue> =
-        serde_json::from_str(r#" {"\\k":"\\v"} "#).unwrap();
+        serde_jsonc2::from_str(r#" {"\\k":"\\v"} "#).unwrap();
     let (map_k, map_v) = map_from_str.into_iter().next().unwrap();
     assert_eq!("\"\\\\k\"", map_k.0.get());
     assert_eq!("\"\\\\v\"", map_v.get());
@@ -2413,38 +2408,38 @@ fn test_boxed_raw_value() {
     }
 
     let wrapper_from_str: Wrapper =
-        serde_json::from_str(r#"{"a": 1, "b": {"foo": 2}, "c": 3}"#).unwrap();
+        serde_jsonc2::from_str(r#"{"a": 1, "b": {"foo": 2}, "c": 3}"#).unwrap();
     assert_eq!(r#"{"foo": 2}"#, wrapper_from_str.b.get());
 
     let wrapper_from_reader: Wrapper =
-        serde_json::from_reader(br#"{"a": 1, "b": {"foo": 2}, "c": 3}"#.as_ref()).unwrap();
+        serde_jsonc2::from_reader(br#"{"a": 1, "b": {"foo": 2}, "c": 3}"#.as_ref()).unwrap();
     assert_eq!(r#"{"foo": 2}"#, wrapper_from_reader.b.get());
 
     let wrapper_from_value: Wrapper =
-        serde_json::from_value(json!({"a": 1, "b": {"foo": 2}, "c": 3})).unwrap();
+        serde_jsonc2::from_value(jsonc!({"a": 1, "b": {"foo": 2}, "c": 3})).unwrap();
     assert_eq!(r#"{"foo":2}"#, wrapper_from_value.b.get());
 
-    let wrapper_to_string = serde_json::to_string(&wrapper_from_str).unwrap();
+    let wrapper_to_string = serde_jsonc2::to_string(&wrapper_from_str).unwrap();
     assert_eq!(r#"{"a":1,"b":{"foo": 2},"c":3}"#, wrapper_to_string);
 
-    let wrapper_to_value = serde_json::to_value(&wrapper_from_str).unwrap();
-    assert_eq!(json!({"a": 1, "b": {"foo": 2}, "c": 3}), wrapper_to_value);
+    let wrapper_to_value = serde_jsonc2::to_value(&wrapper_from_str).unwrap();
+    assert_eq!(jsonc!({"a": 1, "b": {"foo": 2}, "c": 3}), wrapper_to_value);
 
     let array_from_str: Vec<Box<RawValue>> =
-        serde_json::from_str(r#"["a", 42, {"foo": "bar"}, null]"#).unwrap();
+        serde_jsonc2::from_str(r#"["a", 42, {"foo": "bar"}, null]"#).unwrap();
     assert_eq!(r#""a""#, array_from_str[0].get());
     assert_eq!("42", array_from_str[1].get());
     assert_eq!(r#"{"foo": "bar"}"#, array_from_str[2].get());
     assert_eq!("null", array_from_str[3].get());
 
     let array_from_reader: Vec<Box<RawValue>> =
-        serde_json::from_reader(br#"["a", 42, {"foo": "bar"}, null]"#.as_ref()).unwrap();
+        serde_jsonc2::from_reader(br#"["a", 42, {"foo": "bar"}, null]"#.as_ref()).unwrap();
     assert_eq!(r#""a""#, array_from_reader[0].get());
     assert_eq!("42", array_from_reader[1].get());
     assert_eq!(r#"{"foo": "bar"}"#, array_from_reader[2].get());
     assert_eq!("null", array_from_reader[3].get());
 
-    let array_to_string = serde_json::to_string(&array_from_str).unwrap();
+    let array_to_string = serde_jsonc2::to_string(&array_from_str).unwrap();
     assert_eq!(r#"["a",42,{"foo": "bar"},null]"#, array_to_string);
 }
 
@@ -2452,8 +2447,8 @@ fn test_boxed_raw_value() {
 #[test]
 fn test_raw_invalid_utf8() {
     let j = &[b'"', b'\xCE', b'\xF8', b'"'];
-    let value_err = serde_json::from_slice::<Value>(j).unwrap_err();
-    let raw_value_err = serde_json::from_slice::<Box<RawValue>>(j).unwrap_err();
+    let value_err = serde_jsonc2::from_slice::<Value>(j).unwrap_err();
+    let raw_value_err = serde_jsonc2::from_slice::<Box<RawValue>>(j).unwrap_err();
 
     assert_eq!(
         value_err.to_string(),
@@ -2469,7 +2464,7 @@ fn test_raw_invalid_utf8() {
 #[test]
 fn test_serialize_unsized_value_to_raw_value() {
     assert_eq!(
-        serde_json::value::to_raw_value("foobar").unwrap().get(),
+        serde_jsonc2::value::to_raw_value("foobar").unwrap().get(),
         r#""foobar""#,
     );
 }
@@ -2496,7 +2491,7 @@ fn test_borrow_in_map_key() {
         }
     }
 
-    let value = json!({ "map": { "1": null } });
+    let value = jsonc!({ "map": { "1": null } });
     Outer::deserialize(&value).unwrap();
 }
 
@@ -2513,7 +2508,7 @@ fn test_value_into_deserializer() {
     }
 
     let mut map = BTreeMap::new();
-    map.insert("inner", json!({ "string": "Hello World" }));
+    map.insert("inner", jsonc!({ "string": "Hello World" }));
 
     let outer = Outer::deserialize(serde::de::value::MapDeserializer::new(
         map.iter().map(|(k, v)| (*k, v)),
@@ -2529,8 +2524,8 @@ fn test_value_into_deserializer() {
 fn hash_positive_and_negative_zero() {
     let rand = std::hash::RandomState::new();
 
-    let k1 = serde_json::from_str::<Number>("0.0").unwrap();
-    let k2 = serde_json::from_str::<Number>("-0.0").unwrap();
+    let k1 = serde_jsonc2::from_str::<Number>("0.0").unwrap();
+    let k2 = serde_jsonc2::from_str::<Number>("-0.0").unwrap();
     if cfg!(feature = "arbitrary_precision") {
         assert_ne!(k1, k2);
         assert_ne!(rand.hash_one(k1), rand.hash_one(k2));

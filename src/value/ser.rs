@@ -37,22 +37,22 @@ impl Serialize for Value {
 
 /// Serializer whose output is a `Value`.
 ///
-/// This is the serializer that backs [`serde_json::to_value`][crate::to_value].
-/// Unlike the main serde_json serializer which goes from some serializable
+/// This is the serializer that backs [`serde_jsonc2::to_value`][crate::to_value].
+/// Unlike the main serde_jsonc2 serializer which goes from some serializable
 /// value of type `T` to JSON text, this one goes from `T` to
-/// `serde_json::Value`.
+/// `serde_jsonc2::Value`.
 ///
 /// The `to_value` function is implementable as:
 ///
 /// ```
 /// use serde::Serialize;
-/// use serde_json::{Error, Value};
+/// use serde_jsonc2::{Error, Value};
 ///
 /// pub fn to_value<T>(input: T) -> Result<Value, Error>
 /// where
 ///     T: Serialize,
 /// {
-///     input.serialize(serde_json::value::Serializer)
+///     input.serialize(serde_jsonc2::value::Serializer)
 /// }
 /// ```
 pub struct Serializer;

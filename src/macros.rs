@@ -1,9 +1,9 @@
-/// Construct a `serde_json::Value` from a JSON literal.
+/// Construct a `serde_jsonc2::Value` from a JSON literal.
 ///
 /// ```
-/// # use serde_json::json;
+/// # use serde_jsonc2::jsonc;
 /// #
-/// let value = json!({
+/// let value = jsonc!({
 ///     "code": 200,
 ///     "success": true,
 ///     "payload": {
@@ -24,12 +24,12 @@
 /// map with non-string keys, the `json!` macro will panic.
 ///
 /// ```
-/// # use serde_json::json;
+/// # use serde_jsonc2::jsonc;
 /// #
 /// let code = 200;
 /// let features = vec!["serde", "json"];
 ///
-/// let value = json!({
+/// let value = jsonc!({
 ///     "code": code,
 ///     "success": code == 200,
 ///     "payload": {
@@ -41,9 +41,9 @@
 /// Trailing commas are allowed inside both arrays and objects.
 ///
 /// ```
-/// # use serde_json::json;
+/// # use serde_jsonc2::jsonc;
 /// #
-/// let value = json!([
+/// let value = jsonc!([
 ///     "notice",
 ///     "the",
 ///     "trailing",
@@ -51,28 +51,28 @@
 /// ]);
 /// ```
 #[macro_export]
-macro_rules! json {
+macro_rules! jsonc {
     // Hide distracting implementation details from the generated rustdoc.
     ($($json:tt)+) => {
-        $crate::json_internal!($($json)+)
+        $crate::jsonc_internal!($($json)+)
     };
 }
 
 // Rocket relies on this because they export their own `json!` with a different
 // doc comment than ours, and various Rust bugs prevent them from calling our
-// `json!` from their `json!` so they call `json_internal!` directly. Check with
+// `json!` from their `json!` so they call `jsonc_internal!` directly. Check with
 // @SergioBenitez before making breaking changes to this macro.
 //
-// Changes are fine as long as `json_internal!` does not call any new helper
-// macros and can still be invoked as `json_internal!($($json)+)`.
+// Changes are fine as long as `jsonc_internal!` does not call any new helper
+// macros and can still be invoked as `jsonc_internal!($($json)+)`.
 #[macro_export]
 #[doc(hidden)]
-macro_rules! json_internal {
+macro_rules! jsonc_internal {
     //////////////////////////////////////////////////////////////////////////
     // TT muncher for parsing the inside of an array [...]. Produces a vec![...]
     // of the elements.
     //
-    // Must be invoked as: json_internal!(@array [] $($tt)*)
+    // Must be invoked as: jsonc_internal!(@array [] $($tt)*)
     //////////////////////////////////////////////////////////////////////////
 
     // Done with trailing comma.
@@ -87,42 +87,42 @@ macro_rules! json_internal {
 
     // Next element is `null`.
     (@array [$($elems:expr,)*] null $($rest:tt)*) => {
-        $crate::json_internal!(@array [$($elems,)* $crate::json_internal!(null)] $($rest)*)
+        $crate::jsonc_internal!(@array [$($elems,)* $crate::jsonc_internal!(null)] $($rest)*)
     };
 
     // Next element is `true`.
     (@array [$($elems:expr,)*] true $($rest:tt)*) => {
-        $crate::json_internal!(@array [$($elems,)* $crate::json_internal!(true)] $($rest)*)
+        $crate::jsonc_internal!(@array [$($elems,)* $crate::jsonc_internal!(true)] $($rest)*)
     };
 
     // Next element is `false`.
     (@array [$($elems:expr,)*] false $($rest:tt)*) => {
-        $crate::json_internal!(@array [$($elems,)* $crate::json_internal!(false)] $($rest)*)
+        $crate::jsonc_internal!(@array [$($elems,)* $crate::jsonc_internal!(false)] $($rest)*)
     };
 
     // Next element is an array.
     (@array [$($elems:expr,)*] [$($array:tt)*] $($rest:tt)*) => {
-        $crate::json_internal!(@array [$($elems,)* $crate::json_internal!([$($array)*])] $($rest)*)
+        $crate::jsonc_internal!(@array [$($elems,)* $crate::jsonc_internal!([$($array)*])] $($rest)*)
     };
 
     // Next element is a map.
     (@array [$($elems:expr,)*] {$($map:tt)*} $($rest:tt)*) => {
-        $crate::json_internal!(@array [$($elems,)* $crate::json_internal!({$($map)*})] $($rest)*)
+        $crate::jsonc_internal!(@array [$($elems,)* $crate::jsonc_internal!({$($map)*})] $($rest)*)
     };
 
     // Next element is an expression followed by comma.
     (@array [$($elems:expr,)*] $next:expr, $($rest:tt)*) => {
-        $crate::json_internal!(@array [$($elems,)* $crate::json_internal!($next),] $($rest)*)
+        $crate::jsonc_internal!(@array [$($elems,)* $crate::jsonc_internal!($next),] $($rest)*)
     };
 
     // Last element is an expression with no trailing comma.
     (@array [$($elems:expr,)*] $last:expr) => {
-        $crate::json_internal!(@array [$($elems,)* $crate::json_internal!($last)])
+        $crate::jsonc_internal!(@array [$($elems,)* $crate::jsonc_internal!($last)])
     };
 
     // Comma after the most recent element.
     (@array [$($elems:expr),*] , $($rest:tt)*) => {
-        $crate::json_internal!(@array [$($elems,)*] $($rest)*)
+        $crate::jsonc_internal!(@array [$($elems,)*] $($rest)*)
     };
 
     // Unexpected token after most recent element.
@@ -134,7 +134,7 @@ macro_rules! json_internal {
     // TT muncher for parsing the inside of an object {...}. Each entry is
     // inserted into the given map variable.
     //
-    // Must be invoked as: json_internal!(@object $map () ($($tt)*) ($($tt)*))
+    // Must be invoked as: jsonc_internal!(@object $map () ($($tt)*) ($($tt)*))
     //
     // We require two copies of the input tokens so that we can match on one
     // copy and trigger errors on the other copy.
@@ -146,7 +146,7 @@ macro_rules! json_internal {
     // Insert the current entry followed by trailing comma.
     (@object $object:ident [$($key:tt)+] ($value:expr) , $($rest:tt)*) => {
         let _ = $object.insert(($($key)+).into(), $value);
-        $crate::json_internal!(@object $object () ($($rest)*) ($($rest)*));
+        $crate::jsonc_internal!(@object $object () ($($rest)*) ($($rest)*));
     };
 
     // Current entry followed by unexpected token.
@@ -161,50 +161,50 @@ macro_rules! json_internal {
 
     // Next value is `null`.
     (@object $object:ident ($($key:tt)+) (: null $($rest:tt)*) $copy:tt) => {
-        $crate::json_internal!(@object $object [$($key)+] ($crate::json_internal!(null)) $($rest)*);
+        $crate::jsonc_internal!(@object $object [$($key)+] ($crate::jsonc_internal!(null)) $($rest)*);
     };
 
     // Next value is `true`.
     (@object $object:ident ($($key:tt)+) (: true $($rest:tt)*) $copy:tt) => {
-        $crate::json_internal!(@object $object [$($key)+] ($crate::json_internal!(true)) $($rest)*);
+        $crate::jsonc_internal!(@object $object [$($key)+] ($crate::jsonc_internal!(true)) $($rest)*);
     };
 
     // Next value is `false`.
     (@object $object:ident ($($key:tt)+) (: false $($rest:tt)*) $copy:tt) => {
-        $crate::json_internal!(@object $object [$($key)+] ($crate::json_internal!(false)) $($rest)*);
+        $crate::jsonc_internal!(@object $object [$($key)+] ($crate::jsonc_internal!(false)) $($rest)*);
     };
 
     // Next value is an array.
     (@object $object:ident ($($key:tt)+) (: [$($array:tt)*] $($rest:tt)*) $copy:tt) => {
-        $crate::json_internal!(@object $object [$($key)+] ($crate::json_internal!([$($array)*])) $($rest)*);
+        $crate::jsonc_internal!(@object $object [$($key)+] ($crate::jsonc_internal!([$($array)*])) $($rest)*);
     };
 
     // Next value is a map.
     (@object $object:ident ($($key:tt)+) (: {$($map:tt)*} $($rest:tt)*) $copy:tt) => {
-        $crate::json_internal!(@object $object [$($key)+] ($crate::json_internal!({$($map)*})) $($rest)*);
+        $crate::jsonc_internal!(@object $object [$($key)+] ($crate::jsonc_internal!({$($map)*})) $($rest)*);
     };
 
     // Next value is an expression followed by comma.
     (@object $object:ident ($($key:tt)+) (: $value:expr , $($rest:tt)*) $copy:tt) => {
-        $crate::json_internal!(@object $object [$($key)+] ($crate::json_internal!($value)) , $($rest)*);
+        $crate::jsonc_internal!(@object $object [$($key)+] ($crate::jsonc_internal!($value)) , $($rest)*);
     };
 
     // Last value is an expression with no trailing comma.
     (@object $object:ident ($($key:tt)+) (: $value:expr) $copy:tt) => {
-        $crate::json_internal!(@object $object [$($key)+] ($crate::json_internal!($value)));
+        $crate::jsonc_internal!(@object $object [$($key)+] ($crate::jsonc_internal!($value)));
     };
 
     // Missing value for last entry. Trigger a reasonable error message.
     (@object $object:ident ($($key:tt)+) (:) $copy:tt) => {
         // "unexpected end of macro invocation"
-        $crate::json_internal!();
+        $crate::jsonc_internal!();
     };
 
     // Missing colon and value for last entry. Trigger a reasonable error
     // message.
     (@object $object:ident ($($key:tt)+) () $copy:tt) => {
         // "unexpected end of macro invocation"
-        $crate::json_internal!();
+        $crate::jsonc_internal!();
     };
 
     // Misplaced colon. Trigger a reasonable error message.
@@ -222,7 +222,7 @@ macro_rules! json_internal {
     // Key is fully parenthesized. This avoids clippy double_parens false
     // positives because the parenthesization may be necessary here.
     (@object $object:ident () (($key:expr) : $($rest:tt)*) $copy:tt) => {
-        $crate::json_internal!(@object $object ($key) (: $($rest)*) (: $($rest)*));
+        $crate::jsonc_internal!(@object $object ($key) (: $($rest)*) (: $($rest)*));
     };
 
     // Refuse to absorb colon token into key expression.
@@ -232,13 +232,13 @@ macro_rules! json_internal {
 
     // Munch a token into the current key.
     (@object $object:ident ($($key:tt)*) ($tt:tt $($rest:tt)*) $copy:tt) => {
-        $crate::json_internal!(@object $object ($($key)* $tt) ($($rest)*) ($($rest)*));
+        $crate::jsonc_internal!(@object $object ($($key)* $tt) ($($rest)*) ($($rest)*));
     };
 
     //////////////////////////////////////////////////////////////////////////
     // The main implementation.
     //
-    // Must be invoked as: json_internal!($($json)+)
+    // Must be invoked as: jsonc_internal!($($json)+)
     //////////////////////////////////////////////////////////////////////////
 
     (null) => {
@@ -258,7 +258,7 @@ macro_rules! json_internal {
     };
 
     ([ $($tt:tt)+ ]) => {
-        $crate::Value::Array($crate::json_internal!(@array [] $($tt)+))
+        $crate::Value::Array($crate::jsonc_internal!(@array [] $($tt)+))
     };
 
     ({}) => {
@@ -268,7 +268,7 @@ macro_rules! json_internal {
     ({ $($tt:tt)+ }) => {
         $crate::Value::Object({
             let mut object = $crate::Map::new();
-            $crate::json_internal!(@object object () ($($tt)+) ($($tt)+));
+            $crate::jsonc_internal!(@object object () ($($tt)+) ($($tt)+));
             object
         })
     };
@@ -284,7 +284,7 @@ macro_rules! json_internal {
 // Unused since https://github.com/rwf2/Rocket/commit/c74bcfd40a47b35330db6cafb88e4f3da83e0d17
 #[macro_export]
 #[doc(hidden)]
-macro_rules! json_internal_vec {
+macro_rules! jsonc_internal_vec {
     ($($content:tt)*) => {
         vec![$($content)*]
     };
@@ -292,12 +292,12 @@ macro_rules! json_internal_vec {
 
 #[macro_export]
 #[doc(hidden)]
-macro_rules! json_unexpected {
+macro_rules! jsonc_unexpected {
     () => {};
 }
 
 #[macro_export]
 #[doc(hidden)]
-macro_rules! json_expect_expr_comma {
+macro_rules! jsonc_expect_expr_comma {
     ($e:expr , $($tt:tt)*) => {};
 }

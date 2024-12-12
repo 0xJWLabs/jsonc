@@ -2,15 +2,15 @@
 //!
 //! # Constructing JSON
 //!
-//! Serde JSON provides a [`json!` macro][macro] to build `serde_json::Value`
+//! Serde JSON provides a [`jsonc!` macro][macro] to build `serde_jsonc2::Value`
 //! objects with very natural JSON syntax.
 //!
 //! ```
-//! use serde_json::json;
+//! use serde_jsonc2::jsonc;
 //!
 //! fn main() {
-//!     // The type of `john` is `serde_json::Value`
-//!     let john = json!({
+//!     // The type of `john` is `serde_jsonc2::Value`
+//!     let john = jsonc!({
 //!         "name": "John Doe",
 //!         "age": 43,
 //!         "phones": [
@@ -26,24 +26,24 @@
 //! }
 //! ```
 //!
-//! The `Value::to_string()` function converts a `serde_json::Value` into a
+//! The `Value::to_string()` function converts a `serde_jsonc2::Value` into a
 //! `String` of JSON text.
 //!
-//! One neat thing about the `json!` macro is that variables and expressions can
+//! One neat thing about the `jsonc!` macro is that variables and expressions can
 //! be interpolated directly into the JSON value as you are building it. Serde
 //! will check at compile time that the value you are interpolating is able to
 //! be represented as JSON.
 //!
 //! ```
-//! # use serde_json::json;
+//! # use serde_jsonc2::jsonc;
 //! #
 //! # fn random_phone() -> u16 { 0 }
 //! #
 //! let full_name = "John Doe";
 //! let age_last_year = 42;
 //!
-//! // The type of `john` is `serde_json::Value`
-//! let john = json!({
+//! // The type of `john` is `serde_jsonc2::Value`
+//! let john = jsonc!({
 //!     "name": full_name,
 //!     "age": age_last_year + 1,
 //!     "phones": [
@@ -52,14 +52,14 @@
 //! });
 //! ```
 //!
-//! A string of JSON data can be parsed into a `serde_json::Value` by the
-//! [`serde_json::from_str`][from_str] function. There is also
+//! A string of JSON data can be parsed into a `serde_jsonc2::Value` by the
+//! [`serde_jsonc2::from_str`][from_str] function. There is also
 //! [`from_slice`][from_slice] for parsing from a byte slice `&[u8]` and
 //! [`from_reader`][from_reader] for parsing from any `io::Read` like a File or
 //! a TCP stream.
 //!
 //! ```
-//! use serde_json::{json, Value, Error};
+//! use serde_jsonc2::{jsonc, Value, Error};
 //!
 //! fn untyped_example() -> Result<(), Error> {
 //!     // Some JSON input data as a &str. Maybe this comes from the user.
@@ -73,8 +73,8 @@
 //!             ]
 //!         }"#;
 //!
-//!     // Parse the string of data into serde_json::Value.
-//!     let v: Value = serde_json::from_str(data)?;
+//!     // Parse the string of data into serde_jsonc2::Value.
+//!     let v: Value = serde_jsonc2::from_str(data)?;
 //!
 //!     // Access parts of the data by indexing with square brackets.
 //!     println!("Please call {} at the number {}", v["name"], v["phones"][0]);
@@ -85,7 +85,7 @@
 //! # untyped_example().unwrap();
 //! ```
 //!
-//! [macro]: crate::json
+//! [macro]: crate::jsonc
 //! [from_str]: crate::de::from_str
 //! [from_slice]: crate::de::from_slice
 //! [from_reader]: crate::de::from_reader
@@ -111,66 +111,66 @@ pub use crate::raw::{to_raw_value, RawValue};
 
 /// Represents any valid JSON value.
 ///
-/// See the [`serde_json::value` module documentation](self) for usage examples.
+/// See the [`serde_jsonc2::value` module documentation](self) for usage examples.
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub enum Value {
     /// Represents a JSON null value.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let v = json!(null);
+    /// let v = jsonc!(null);
     /// ```
     Null,
 
     /// Represents a JSON boolean.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let v = json!(true);
+    /// let v = jsonc!(true);
     /// ```
     Bool(bool),
 
     /// Represents a JSON number, whether integer or floating point.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let v = json!(12.5);
+    /// let v = jsonc!(12.5);
     /// ```
     Number(Number),
 
     /// Represents a JSON string.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let v = json!("a string");
+    /// let v = jsonc!("a string");
     /// ```
     String(String),
 
     /// Represents a JSON array.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let v = json!(["an", "array"]);
+    /// let v = jsonc!(["an", "array"]);
     /// ```
     Array(Vec<Value>),
 
     /// Represents a JSON object.
     ///
     /// By default the map is backed by a BTreeMap. Enable the `preserve_order`
-    /// feature of serde_json to use IndexMap instead, which preserves
+    /// feature of serde_jsonc2 to use IndexMap instead, which preserves
     /// entries in the order they are inserted into the map. In particular, this
     /// allows JSON data to be deserialized into a Value and serialized to a
     /// string while retaining the order of map keys in the input.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let v = json!({ "an": "object" });
+    /// let v = jsonc!({ "an": "object" });
     /// ```
     Object(Map<String, Value>),
 }
@@ -198,9 +198,9 @@ impl Display for Value {
     /// Display a JSON value as a string.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let json = json!({ "city": "London", "street": "10 Downing Street" });
+    /// let json = jsonc!({ "city": "London", "street": "10 Downing Street" });
     ///
     /// // Compact format:
     /// //
@@ -274,13 +274,13 @@ impl Value {
     /// or the given index is not within the bounds of the array.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let object = json!({ "A": 65, "B": 66, "C": 67 });
-    /// assert_eq!(*object.get("A").unwrap(), json!(65));
+    /// let object = jsonc!({ "A": 65, "B": 66, "C": 67 });
+    /// assert_eq!(*object.get("A").unwrap(), jsonc!(65));
     ///
-    /// let array = json!([ "A", "B", "C" ]);
-    /// assert_eq!(*array.get(2).unwrap(), json!("C"));
+    /// let array = jsonc!([ "A", "B", "C" ]);
+    /// assert_eq!(*array.get(2).unwrap(), jsonc!("C"));
     ///
     /// assert_eq!(array.get("A"), None);
     /// ```
@@ -290,17 +290,17 @@ impl Value {
     /// `None`.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let object = json!({
+    /// let object = jsonc!({
     ///     "A": ["a", "á", "à"],
     ///     "B": ["b", "b́"],
     ///     "C": ["c", "ć", "ć̣", "ḉ"],
     /// });
-    /// assert_eq!(object["B"][0], json!("b"));
+    /// assert_eq!(object["B"][0], jsonc!("b"));
     ///
-    /// assert_eq!(object["D"], json!(null));
-    /// assert_eq!(object[0]["x"]["y"]["z"], json!(null));
+    /// assert_eq!(object["D"], jsonc!(null));
+    /// assert_eq!(object[0]["x"]["y"]["z"], jsonc!(null));
     /// ```
     pub fn get<I: Index>(&self, index: I) -> Option<&Value> {
         index.index_into(self)
@@ -316,13 +316,13 @@ impl Value {
     /// or the given index is not within the bounds of the array.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let mut object = json!({ "A": 65, "B": 66, "C": 67 });
-    /// *object.get_mut("A").unwrap() = json!(69);
+    /// let mut object = jsonc!({ "A": 65, "B": 66, "C": 67 });
+    /// *object.get_mut("A").unwrap() = jsonc!(69);
     ///
-    /// let mut array = json!([ "A", "B", "C" ]);
-    /// *array.get_mut(2).unwrap() = json!("D");
+    /// let mut array = jsonc!([ "A", "B", "C" ]);
+    /// *array.get_mut(2).unwrap() = jsonc!("D");
     /// ```
     pub fn get_mut<I: Index>(&mut self, index: I) -> Option<&mut Value> {
         index.index_into_mut(self)
@@ -335,9 +335,9 @@ impl Value {
     /// object.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let obj = json!({ "a": { "nested": true }, "b": ["an", "array"] });
+    /// let obj = jsonc!({ "a": { "nested": true }, "b": ["an", "array"] });
     ///
     /// assert!(obj.is_object());
     /// assert!(obj["a"].is_object());
@@ -353,9 +353,9 @@ impl Value {
     /// otherwise.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let v = json!({ "a": { "nested": true }, "b": ["an", "array"] });
+    /// let v = jsonc!({ "a": { "nested": true }, "b": ["an", "array"] });
     ///
     /// // The length of `{"nested": true}` is 1 entry.
     /// assert_eq!(v["a"].as_object().unwrap().len(), 1);
@@ -374,12 +374,12 @@ impl Value {
     /// Returns None otherwise.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let mut v = json!({ "a": { "nested": true } });
+    /// let mut v = jsonc!({ "a": { "nested": true } });
     ///
     /// v["a"].as_object_mut().unwrap().clear();
-    /// assert_eq!(v, json!({ "a": {} }));
+    /// assert_eq!(v, jsonc!({ "a": {} }));
     /// ```
     pub fn as_object_mut(&mut self) -> Option<&mut Map<String, Value>> {
         match self {
@@ -395,9 +395,9 @@ impl Value {
     /// array.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let obj = json!({ "a": ["an", "array"], "b": { "an": "object" } });
+    /// let obj = jsonc!({ "a": ["an", "array"], "b": { "an": "object" } });
     ///
     /// assert!(obj["a"].is_array());
     ///
@@ -412,9 +412,9 @@ impl Value {
     /// otherwise.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let v = json!({ "a": ["an", "array"], "b": { "an": "object" } });
+    /// let v = jsonc!({ "a": ["an", "array"], "b": { "an": "object" } });
     ///
     /// // The length of `["an", "array"]` is 2 elements.
     /// assert_eq!(v["a"].as_array().unwrap().len(), 2);
@@ -433,12 +433,12 @@ impl Value {
     /// Returns None otherwise.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let mut v = json!({ "a": ["an", "array"] });
+    /// let mut v = jsonc!({ "a": ["an", "array"] });
     ///
     /// v["a"].as_array_mut().unwrap().clear();
-    /// assert_eq!(v, json!({ "a": [] }));
+    /// assert_eq!(v, jsonc!({ "a": [] }));
     /// ```
     pub fn as_array_mut(&mut self) -> Option<&mut Vec<Value>> {
         match self {
@@ -453,9 +453,9 @@ impl Value {
     /// to return the string slice.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let v = json!({ "a": "some string", "b": false });
+    /// let v = jsonc!({ "a": "some string", "b": false });
     ///
     /// assert!(v["a"].is_string());
     ///
@@ -470,9 +470,9 @@ impl Value {
     /// otherwise.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let v = json!({ "a": "some string", "b": false });
+    /// let v = jsonc!({ "a": "some string", "b": false });
     ///
     /// assert_eq!(v["a"].as_str(), Some("some string"));
     ///
@@ -499,9 +499,9 @@ impl Value {
     /// Returns true if the `Value` is a Number. Returns false otherwise.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let v = json!({ "a": 1, "b": "2" });
+    /// let v = jsonc!({ "a": 1, "b": "2" });
     ///
     /// assert!(v["a"].is_number());
     ///
@@ -519,9 +519,9 @@ impl Value {
     /// None otherwise.
     ///
     /// ```
-    /// # use serde_json::{json, Number};
+    /// # use serde_jsonc2::{jsonc, Number};
     /// #
-    /// let v = json!({ "a": 1, "b": 2.2, "c": -3, "d": "4" });
+    /// let v = jsonc!({ "a": 1, "b": 2.2, "c": -3, "d": "4" });
     ///
     /// assert_eq!(v["a"].as_number(), Some(&Number::from(1u64)));
     /// assert_eq!(v["b"].as_number(), Some(&Number::from_f64(2.2).unwrap()));
@@ -544,10 +544,10 @@ impl Value {
     /// return the integer value.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
     /// let big = i64::max_value() as u64 + 10;
-    /// let v = json!({ "a": 64, "b": big, "c": 256.0 });
+    /// let v = jsonc!({ "a": 64, "b": big, "c": 256.0 });
     ///
     /// assert!(v["a"].is_i64());
     ///
@@ -570,9 +570,9 @@ impl Value {
     /// return the integer value.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let v = json!({ "a": 64, "b": -64, "c": 256.0 });
+    /// let v = jsonc!({ "a": 64, "b": -64, "c": 256.0 });
     ///
     /// assert!(v["a"].is_u64());
     ///
@@ -598,9 +598,9 @@ impl Value {
     /// `is_u64` return false but this is not a guarantee in the future.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let v = json!({ "a": 256.0, "b": 64, "c": -64 });
+    /// let v = jsonc!({ "a": 256.0, "b": 64, "c": -64 });
     ///
     /// assert!(v["a"].is_f64());
     ///
@@ -619,10 +619,10 @@ impl Value {
     /// None otherwise.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
     /// let big = i64::max_value() as u64 + 10;
-    /// let v = json!({ "a": 64, "b": big, "c": 256.0 });
+    /// let v = jsonc!({ "a": 64, "b": big, "c": 256.0 });
     ///
     /// assert_eq!(v["a"].as_i64(), Some(64));
     /// assert_eq!(v["b"].as_i64(), None);
@@ -639,9 +639,9 @@ impl Value {
     /// None otherwise.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let v = json!({ "a": 64, "b": -64, "c": 256.0 });
+    /// let v = jsonc!({ "a": 64, "b": -64, "c": 256.0 });
     ///
     /// assert_eq!(v["a"].as_u64(), Some(64));
     /// assert_eq!(v["b"].as_u64(), None);
@@ -658,9 +658,9 @@ impl Value {
     /// None otherwise.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let v = json!({ "a": 256.0, "b": 64, "c": -64 });
+    /// let v = jsonc!({ "a": 256.0, "b": 64, "c": -64 });
     ///
     /// assert_eq!(v["a"].as_f64(), Some(256.0));
     /// assert_eq!(v["b"].as_f64(), Some(64.0));
@@ -679,9 +679,9 @@ impl Value {
     /// guaranteed to return the boolean value.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let v = json!({ "a": false, "b": "false" });
+    /// let v = jsonc!({ "a": false, "b": "false" });
     ///
     /// assert!(v["a"].is_boolean());
     ///
@@ -696,9 +696,9 @@ impl Value {
     /// otherwise.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let v = json!({ "a": false, "b": "false" });
+    /// let v = jsonc!({ "a": false, "b": "false" });
     ///
     /// assert_eq!(v["a"].as_bool(), Some(false));
     ///
@@ -718,9 +718,9 @@ impl Value {
     /// to return `Some(())`.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let v = json!({ "a": null, "b": false });
+    /// let v = jsonc!({ "a": null, "b": false });
     ///
     /// assert!(v["a"].is_null());
     ///
@@ -734,9 +734,9 @@ impl Value {
     /// If the `Value` is a Null, returns (). Returns None otherwise.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let v = json!({ "a": null, "b": false });
+    /// let v = jsonc!({ "a": null, "b": false });
     ///
     /// assert_eq!(v["a"].as_null(), Some(()));
     ///
@@ -765,15 +765,15 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let data = json!({
+    /// let data = jsonc!({
     ///     "x": {
     ///         "y": ["z", "zz"]
     ///     }
     /// });
     ///
-    /// assert_eq!(data.pointer("/x/y/1").unwrap(), &json!("zz"));
+    /// assert_eq!(data.pointer("/x/y/1").unwrap(), &jsonc!("zz"));
     /// assert_eq!(data.pointer("/a/b/c"), None);
     /// ```
     pub fn pointer(&self, pointer: &str) -> Option<&Value> {
@@ -810,11 +810,11 @@ impl Value {
     /// # Example of Use
     ///
     /// ```
-    /// use serde_json::Value;
+    /// use serde_jsonc2::Value;
     ///
     /// fn main() {
     ///     let s = r#"{"x": 1.0, "y": 2.0}"#;
-    ///     let mut value: Value = serde_json::from_str(s).unwrap();
+    ///     let mut value: Value = serde_jsonc2::from_str(s).unwrap();
     ///
     ///     // Check value using read-only pointer
     ///     assert_eq!(value.pointer("/x"), Some(&1.0.into()));
@@ -852,11 +852,11 @@ impl Value {
     /// Takes the value out of the `Value`, leaving a `Null` in its place.
     ///
     /// ```
-    /// # use serde_json::json;
+    /// # use serde_jsonc2::jsonc;
     /// #
-    /// let mut v = json!({ "x": "y" });
-    /// assert_eq!(v["x"].take(), json!("y"));
-    /// assert_eq!(v, json!({ "x": null }));
+    /// let mut v = jsonc!({ "x": "y" });
+    /// assert_eq!(v["x"].take(), jsonc!("y"));
+    /// assert_eq!(v, jsonc!({ "x": null }));
     /// ```
     pub fn take(&mut self) -> Value {
         mem::replace(self, Value::Null)
@@ -865,10 +865,10 @@ impl Value {
     /// Reorders the entries of all `Value::Object` nested within this JSON
     /// value according to `str`'s usual ordering.
     ///
-    /// If serde_json's "preserve_order" feature is not enabled, this method
+    /// If serde_jsonc2's "preserve_order" feature is not enabled, this method
     /// does no work because all JSON maps are always kept in a sorted state.
     ///
-    /// If serde_json's "preserve_order" feature is enabled, this method
+    /// If serde_jsonc2's "preserve_order" feature is enabled, this method
     /// destroys the original source order or insertion order of the JSON
     /// objects in favor of an alphanumerical order that matches how a BTreeMap
     /// with the same contents would be ordered.
@@ -897,7 +897,7 @@ impl Value {
 ///
 /// ```
 /// # use serde::Deserialize;
-/// use serde_json::Value;
+/// use serde_jsonc2::Value;
 ///
 /// #[derive(Deserialize)]
 /// struct Settings {
@@ -906,9 +906,9 @@ impl Value {
 ///     extras: Value,
 /// }
 ///
-/// # fn try_main() -> Result<(), serde_json::Error> {
+/// # fn try_main() -> Result<(), serde_jsonc2::Error> {
 /// let data = r#" { "level": 42 } "#;
-/// let s: Settings = serde_json::from_str(data)?;
+/// let s: Settings = serde_jsonc2::from_str(data)?;
 ///
 /// assert_eq!(s.level, 42);
 /// assert_eq!(s.extras, Value::Null);
@@ -930,14 +930,14 @@ mod index;
 mod partial_eq;
 mod ser;
 
-/// Convert a `T` into `serde_json::Value` which is an enum that can represent
+/// Convert a `T` into `serde_jsonc2::Value` which is an enum that can represent
 /// any valid JSON data.
 ///
 /// # Example
 ///
 /// ```
 /// use serde::Serialize;
-/// use serde_json::json;
+/// use serde_jsonc2::jsonc;
 /// use std::error::Error;
 ///
 /// #[derive(Serialize)]
@@ -952,13 +952,13 @@ mod ser;
 ///         location: "Menlo Park, CA".to_owned(),
 ///     };
 ///
-///     // The type of `expected` is `serde_json::Value`
-///     let expected = json!({
+///     // The type of `expected` is `serde_jsonc2::Value`
+///     let expected = jsonc!({
 ///         "fingerprint": "0xF9BA143B95FF6D82",
 ///         "location": "Menlo Park, CA",
 ///     });
 ///
-///     let v = serde_json::to_value(u).unwrap();
+///     let v = serde_jsonc2::to_value(u).unwrap();
 ///     assert_eq!(v, expected);
 ///
 ///     Ok(())
@@ -980,7 +980,7 @@ mod ser;
 ///     let mut map = BTreeMap::new();
 ///     map.insert(vec![32, 64], "x86");
 ///
-///     println!("{}", serde_json::to_value(map).unwrap_err());
+///     println!("{}", serde_jsonc2::to_value(map).unwrap_err());
 /// }
 /// ```
 // Taking by value is more friendly to iterator adapters, option and result
@@ -992,13 +992,13 @@ where
     value.serialize(Serializer)
 }
 
-/// Interpret a `serde_json::Value` as an instance of type `T`.
+/// Interpret a `serde_jsonc2::Value` as an instance of type `T`.
 ///
 /// # Example
 ///
 /// ```
 /// use serde::Deserialize;
-/// use serde_json::json;
+/// use serde_jsonc2::jsonc;
 ///
 /// #[derive(Deserialize, Debug)]
 /// struct User {
@@ -1007,13 +1007,13 @@ where
 /// }
 ///
 /// fn main() {
-///     // The type of `j` is `serde_json::Value`
-///     let j = json!({
+///     // The type of `j` is `serde_jsonc2::Value`
+///     let j = jsonc!({
 ///         "fingerprint": "0xF9BA143B95FF6D82",
 ///         "location": "Menlo Park, CA"
 ///     });
 ///
-///     let u: User = serde_json::from_value(j).unwrap();
+///     let u: User = serde_jsonc2::from_value(j).unwrap();
 ///     println!("{:#?}", u);
 /// }
 /// ```

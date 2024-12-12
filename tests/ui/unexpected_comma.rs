@@ -1,5 +1,5 @@
-use serde_json::json;
+use serde_jsonc2::jsonc;
 
 fn main() {
-    json!({ "a" , "b": true });
+    jsonc!({ "a" , "b": true });
 }

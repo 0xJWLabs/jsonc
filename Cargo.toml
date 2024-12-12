@@ -1,33 +1,37 @@
 [package]
-name = "serde_json"
-version = "1.0.133"
-authors = ["Erick Tryzelaar <erick.tryzelaar@gmail.com>", "David Tolnay <dtolnay@gmail.com>"]
+authors = [
+  "Erick Tryzelaar <erick.tryzelaar@gmail.com>",
+  "David Tolnay <dtolnay@gmail.com>",
+  "0xJWLabs@gmail.com <0xjwlabs@gmail.com>",
+]
+name = "serde_jsonc2"
+version = "0.1.0"
 categories = ["encoding", "parser-implementations", "no-std"]
-description = "A JSON serialization file format"
-documentation = "https://docs.rs/serde_json"
+description = "A JSON(C) serialization file format (fork of serde_json)"
+documentation = "https://docs.rs/serde_jsonc2"
 edition = "2021"
 keywords = ["json", "serde", "serialization"]
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/serde-rs/json"
+repository = "https://github.com/0xJWLabs/jsonc"
 rust-version = "1.56"
 
 [dependencies]
-indexmap = { version = "2.2.3", optional = true }
-itoa = "1.0"
-memchr = { version = "2", default-features = false }
-ryu = "1.0"
-serde = { version = "1.0.194", default-features = false }
+indexmap = { version = "2.7.0", optional = true }
+itoa = "1.0.14"
+memchr = { version = "2.7.4", default-features = false }
+ryu = "1.0.18"
+serde = { version = "1.0.216", default-features = false }
 
 [dev-dependencies]
-automod = "1.0.11"
-indoc = "2.0.2"
-ref-cast = "1.0.18"
-rustversion = "1.0.13"
-serde = { version = "1.0.194", features = ["derive"] }
-serde_bytes = "0.11.10"
-serde_derive = "1.0.166"
+automod = "1.0.14"
+indoc = "2.0.5"
+ref-cast = "1.0.23"
+rustversion = "1.0.18"
+serde = { version = "1.0.216", features = ["derive"] }
+serde_bytes = "0.11.15"
+serde_derive = "1.0.216"
 serde_stacker = "0.1.8"
-trybuild = { version = "1.0.81", features = ["diff"] }
+trybuild = { version = "1.0.101", features = ["diff"] }
 
 [lib]
 doc-scrape-examples = false
@@ -53,7 +57,7 @@ std = ["memchr/std", "serde/std"]
 # NOTE: Disabling both `std` *and* `alloc` features is not supported yet.
 alloc = ["serde/alloc"]
 
-# Make serde_json::Map use a representation which maintains insertion order.
+# Make serde_jsonc2::Map use a representation which maintains insertion order.
 # This allows data to be read into a Value and written back to a JSON string
 # while preserving the order of map keys in the input.
 preserve_order = ["indexmap", "std"]
@@ -67,11 +71,11 @@ preserve_order = ["indexmap", "std"]
 # output identical to the input.
 float_roundtrip = []
 
-# Use an arbitrary precision number representation for serde_json::Number. This
+# Use an arbitrary precision number representation for serde_jsonc2::Number. This
 # allows JSON numbers of arbitrary size/precision to be read into a Number and
 # written back to a JSON string without loss of precision.
 #
-# Unlike float_roundtrip, this feature makes JSON -> serde_json::Number -> JSON
+# Unlike float_roundtrip, this feature makes JSON -> serde_jsonc2::Number -> JSON
 # produce output identical to the input.
 arbitrary_precision = []
 
