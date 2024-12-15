@@ -1,9 +1,9 @@
 # Serde JSONC2 &emsp; [![Build Status]][actions] [![Latest Version]][crates.io] [![Rustc Version 1.36+]][rustc]
 
 [Build Status]: https://img.shields.io/github/actions/workflow/status/0xJWLabs/jsonc/ci.yml?branch=master
-[actions]: https://github.com/0xJWLabs/jsoc/actions?query=branch%3Amaster
-[Latest Version]: https://img.shields.io/crates/v/serde_jsonc2c2.svg
-[crates.io]: https://crates.io/crates/serde\_jsonc2
+[actions]: https://github.com/0xJWLabs/jsonc/actions?query=branch%3Amaster
+[Latest Version]: https://img.shields.io/crates/v/serde_jsonc2.svg
+[crates.io]: https://crates.io/crates/serde_jsonc2
 [Rustc Version 1.36+]: https://img.shields.io/badge/rustc-1.36+-lightgray.svg
 [rustc]: https://blog.rust-lang.org/2019/07/04/Rust-1.36.0.html
 
@@ -13,12 +13,12 @@
 
 ```toml
 [dependencies]
-serde_jsonc2c2 = "0.1.0"
+serde_jsonc2 = "0.1.0"
 ```
 
 You may be looking for:
 
-- [JSONC API documentation](https://docs.rs/serde_jsonc2c2)
+- [JSONC API documentation](https://docs.rs/serde_jsonc2)
 - [Serde API documentation](https://docs.rs/serde)
 - [Detailed documentation about Serde](https://serde.rs/)
 - [Setting up `#[derive(Serialize, Deserialize)]`](https://serde.rs/derive.html)
