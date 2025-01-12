@@ -298,7 +298,7 @@
 //! [to_writer]: crate::ser::to_writer
 //! [macro]: crate::jsonc
 
-#![doc(html_root_url = "https://docs.rs/serde_jsonc2/1.0.134")]
+#![doc(html_root_url = "https://docs.rs/serde_jsonc2/0.1.2")]
 // Ignored clippy lints
 #![allow(
     clippy::collapsible_else_if,
